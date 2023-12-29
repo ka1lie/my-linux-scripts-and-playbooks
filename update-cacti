@@ -1,0 +1,65 @@
+- hosts: application
+  become: yes
+  become_method: sudo
+  tasks:
+
+
+    - name: Get Ansible timestamp
+      debug: 
+        var: ansible_date_time.date
+    - name: retrieve current version
+      shell: cat /var/www/html/cacti/include/cacti_version
+      register: cacti_version
+    - name: remove old cacti
+      command: rm -rf /var/www/html/cacti
+    - name: remove old spine
+      command: rm -rf /usr/local/spine
+    - name: untar cacti
+      unarchive:
+        src: /home/localadmin/update/cacti.tar.gz
+        dest: /var/www/html
+    - name: rename cacti
+      shell: mv /var/www/html/cacti* /var/www/html/cacti
+    - name: untar spine
+      unarchive:
+        src: /home/localadmin/update/spine.tar.gz
+        dest: /usr/local
+    - name: rename spine
+      shell: mv /usr/local/cacti* /usr/local/spine
+    - name: spine - bootstrap
+      command: chdir=/usr/local/spine ./bootstrap
+    - name: spine - configure
+      command: chdir=/usr/local/spine ./configure
+    - name: spine - make
+      command: chdir=/usr/local/spine make
+    - name: spine - make install
+      command: chdir=/usr/local/spine make install
+    - name: change spine owner
+      command: chown root:root /usr/local/spine/bin/spine
+    - name: change spine mod for executing
+      command: chmod +s /usr/local/spine/bin/spine
+    - name: copy old spine config
+      shell: cp -f /home/localadmin/backups/spine_{{ cacti_version }}_{{ ansible_date_time.date }}/etc/spine.conf /usr/local/spine/etc/spine.conf
+    - name: remove cacti rra and add symlink
+      shell: rm -rf /var/www/html/cacti/rra | yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/rra /var/www/html/cacti
+    - name: remove cacti log and add symlink
+      shell: rm -rf /var/www/html/cacti/log | yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/log /var/www/html/cacti
+    - name: copy old plugins 
+      shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/plugins /var/www/html/cacti
+    - name: copy old snmp queries
+      shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/resource/snmp_queries /var/www/html/cacti/resource
+    - name: copy old scripts
+      shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/scripts /var/www/html/cacti
+    - name: copy old config
+      shell: yes | cp /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/include/config.php /var/www/html/cacti/include/config.php
+    - name: change owner to cacti directory
+      command: chown -R apache:apache /var/www/html/cacti
+    
+
+- hosts: localhost:poller
+  become: yes
+  become_method: sudo
+  tasks:
+
+    - name: copy speedtest
+      shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/speedtest /var/www/html/cacti
