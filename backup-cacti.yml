@@ -1,0 +1,45 @@
+- hosts: all
+  tasks:
+
+    - name: Get Ansible timestamp
+      debug: 
+        var: ansible_date_time.date
+
+- hosts: db
+  become: yes
+  become_method: sudo
+  tasks:
+
+
+    - name: backup database
+      shell: mysqldump --host 127.0.0.1 -u root -p"YOUR_PASS" cacti > /base/cacti_backup_{{ ansible_date_time.date }}.sql
+
+
+- hosts: pollers
+  become: yes
+  become_method: sudo
+  tasks:
+
+
+    - name: retrieve current version
+      shell: cat /var/www/html/cacti/include/cacti_version
+      register: cacti_version
+    - name: backup cacti
+      command: cp -r /var/www/html/cacti /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}
+    - name: backup spine
+      command: cp -r /usr/local/spine /home/localadmin/backups/spine_{{ cacti_version }}_{{ ansible_date_time.date }}
+    - name: backup db
+      shell: mysqldump --host 127.0.0.1 -u root -p"YOUR_PASS" cacti_poller > /home/localadmin/backups/cacti_backup_{{ ansible_date_time.date }}.sql
+
+- hosts: main
+  become: yes
+  become_method: sudo
+  tasks:
+
+    - name: retrieve current version
+      shell: cat /var/www/html/cacti/include/cacti_version
+      register: cacti_version
+    - name: backup cacti
+      command: cp -r /var/www/html/cacti /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}
+    - name: backup spine
+      command: cp -r /usr/local/spine /home/localadmin/backups/spine_{{ cacti_version }}_{{ ansible_date_time.date }}
