@@ -4,9 +4,6 @@
   tasks:
 
 
-    - name: Get Ansible timestamp
-      debug: 
-        var: ansible_date_time.date
     - name: retrieve current version
       shell: cat /var/www/html/cacti/include/cacti_version
       register: cacti_version
