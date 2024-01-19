@@ -39,7 +39,7 @@
         - name: change spine mod for executing
           command: chmod +s /usr/local/spine/bin/spine
         - name: copy old spine config
-          shell: cp -f /home/localadmin/backups/spine_{{ cacti_version }}_{{ ansible_date_time.date }}/etc/spine.conf /usr/local/spine/etc/spine.conf
+          shell: cp -f /home/localadmin/backups/spine_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/etc/spine.conf /usr/local/spine/etc/spine.conf
 
       when: spine_tgz.matched == "1"
 
@@ -56,17 +56,17 @@
         - name: rename cacti
           shell: mv /var/www/html/cacti* /var/www/html/cacti
         - name: remove cacti rra and add symlink
-          shell: rm -rf /var/www/html/cacti/rra | yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/rra /var/www/html/cacti
+          shell: rm -rf /var/www/html/cacti/rra | yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/rra /var/www/html/cacti
         - name: remove cacti log and add symlink
-          shell: rm -rf /var/www/html/cacti/log | yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/log /var/www/html/cacti
+          shell: rm -rf /var/www/html/cacti/log | yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/log /var/www/html/cacti
         - name: copy old plugins 
-          shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/plugins /var/www/html/cacti
+          shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/plugins /var/www/html/cacti
         - name: copy old snmp queries
-          shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/resource/snmp_queries /var/www/html/cacti/resource
+          shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/resource/snmp_queries /var/www/html/cacti/resource
         - name: copy old scripts
-          shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/scripts /var/www/html/cacti
+          shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/scripts /var/www/html/cacti
         - name: copy old config
-          shell: yes | cp /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/include/config.php /var/www/html/cacti/include/config.php
+          shell: yes | cp /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/include/config.php /var/www/html/cacti/include/config.php
         - name: change owner to cacti directory
           command: chown -R apache:apache /var/www/html/cacti
       
@@ -78,5 +78,5 @@
   tasks:
 
     - name: copy speedtest
-      shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version }}_{{ ansible_date_time.date }}/speedtest /var/www/html/cacti
+      shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/speedtest /var/www/html/cacti
       when: cacti_tgz.matched == "1" and spine_tgz.matched == "1"
