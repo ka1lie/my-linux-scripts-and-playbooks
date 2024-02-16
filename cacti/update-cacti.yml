@@ -7,14 +7,26 @@
       shell: cat /var/www/html/cacti/include/cacti_version
       register: cacti_version
 
+    - name: check cacti backup
+      stat: 
+        path: /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}
+      register: cacti_backup_check
+    - name: check spine backup
+      stat: 
+        path: /home/localadmin/backups/spine_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}
+      register: spine_backup_check
+      
+
     - name: check cacti.tar.gz exists
-      find: paths="/home/localadmin/update" patterns="cacti-\d.*.tar.gz" use_regex="yes"
+      find: paths="/home/localadmin/update" patterns="cacti-latest.tar.gz"
       register: cacti_tgz
     - name: check cacti-spine.tar.gz exists
-      find: paths="/home/localadmin/update" patterns="cacti-spine-*.tar.gz"
+      find: paths="/home/localadmin/update" patterns="cacti-spine-latest.tar.gz"
       register: spine_tgz
 
-  
+
+
+
     - block: # Execute if spine tar is exist
     
         - name: remove old spine
@@ -41,7 +53,7 @@
         - name: copy old spine config
           shell: cp -f /home/localadmin/backups/spine_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/etc/spine.conf /usr/local/spine/etc/spine.conf
 
-      when: spine_tgz.matched == "1"
+      when: spine_tgz.matched == 1 and spine_backup_check.stat.exists
 
 
     - block: # Execute if cacti tar is exist
@@ -70,13 +82,22 @@
         - name: change owner to cacti directory
           command: chown -R apache:apache /var/www/html/cacti
       
-      when: cacti_tgz.matched == "1"
+      when: cacti_tgz.matched == 1 and cacti_backup_check.stat.exists
 
-- hosts: localhost:poller
+- hosts: network,net-poller-01
   become: yes
   become_method: sudo
   tasks:
 
     - name: copy speedtest
       shell: yes | cp -Rf /home/localadmin/backups/cacti_{{ cacti_version.stdout }}_{{ ansible_date_time.date }}/speedtest /var/www/html/cacti
-      when: cacti_tgz.matched == "1" and spine_tgz.matched == "1"
+      when: cacti_tgz.matched == 1 and spine_tgz.matched == 1
+
+
+- hosts: application
+  become: yes
+  become_method: sudo
+  tasks:
+
+    - name: clear update directory
+      shell: rm -rf /home/localadmin/update/*.tar.gz
