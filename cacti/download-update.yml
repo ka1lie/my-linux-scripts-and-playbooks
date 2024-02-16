@@ -1,0 +1,14 @@
+- hosts: application
+  become: yes
+  become_method: sudo
+  tasks:
+
+      - name: download cacti
+        get_url:
+          url: https://files.cacti.net/cacti/linux/cacti-latest.tar.gz
+          dest: /home/localadmin/update
+
+      - name: download spine
+        get_url:
+          url: https://files.cacti.net/spine/cacti-spine-latest.tar.gz
+          dest: /home/localadmin/update
