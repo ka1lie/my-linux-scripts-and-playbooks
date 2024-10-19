@@ -1,0 +1,44 @@
+- hosts: 127.0.0.1
+  connection: local
+  become: yes
+  become_method: sudo
+  tasks:
+
+  - name: Run the equivalent of "apt-get update" as a separate step
+    apt:
+      update_cache: yes
+
+  - name: Update all packages to their latest version
+    apt:
+      name: "*"
+      state: latest
+
+  - name: Upgrade the OS (apt-get dist-upgrade)
+    apt:
+      upgrade: dist
+
+  - name: Install additional packages
+    apt:
+      pkg:
+      - mc
+      - htop
+      - ca-certificates
+      - net-tools
+
+  - name: Execute the script for installing Docker
+    command: sh /root/docker-install.sh
+
+  - name: Install Docker packages
+    apt:
+      pkg:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+
+  - name: Enable and start Docker
+    service:
+      name: docker
+      enabled: yes
+      state: started
