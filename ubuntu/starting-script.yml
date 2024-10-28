@@ -24,6 +24,7 @@
       - htop
       - ca-certificates
       - net-tools
+      - curl
 
   - name: Find out playbook's path
     shell: pwd
