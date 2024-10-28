@@ -25,8 +25,12 @@
       - ca-certificates
       - net-tools
 
+  - name: Find out playbook's path
+    shell: pwd
+    register: playbook_path_output
+
   - name: Execute the script for installing Docker
-    command: sh /root/docker-install.sh
+    command: sh {{ playbook_path_output.stdout }}/docker-install.sh
 
   - name: Install Docker packages
     apt:
