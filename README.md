@@ -1,2 +1,2 @@
-# my-ansible-playbooks
-Всем привет! Сюда накидываю свои наработки по Ansible
+# my-linux-scripts-and-playbooks
+Всем привет! Сюда накидываю свои наработки в Linux Insfrastricture (различные скрипты и плэйбуки)
