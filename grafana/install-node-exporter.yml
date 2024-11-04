@@ -1,0 +1,28 @@
+- hosts: 127.0.0.1
+  connection: local
+  become: yes
+  become_method: sudo
+  tasks:
+
+  - name: Create temporary dir
+    file:
+      path: /tmp/node-exporter
+  
+  - name: Download Node Exporter
+    shell: wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
+
+  - name: Unarchive
+
+  - name: Copy exec file to bin direcrory
+
+  - name: Create user 
+
+  - name: Assign exec file to user
+
+  - name: Copy service config
+
+  - name: Daemon-reload
+
+  - name: Enable and start service
+
+  - name: Clear temporary dir

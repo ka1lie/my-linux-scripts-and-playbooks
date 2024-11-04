@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - "/root/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - prom_data:/prometheus
+    ports:
+      - '9090:9090'
+
+
+  alert-manager:
+    image: prom/alertmanager
+    volumes:
+      - "/root/alertmanager.yml:/alertmanager/alertmanager.yml"
+    ports:
+      - '9093:9093'
+
+volumes:
+  grafana-storage: {}
+  prom_data:
