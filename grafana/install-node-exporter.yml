@@ -8,21 +8,34 @@
     file:
       path: /tmp/node-exporter
   
-  - name: Download Node Exporter
-    shell: wget https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
-
-  - name: Unarchive
+  - name: Download and unarchive
+    unarchive:
+      src: https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
+      dest: /tmp/node-exporter
+      remote_src: yes
 
   - name: Copy exec file to bin direcrory
+    shell: cp /tmp/node-exporter/node_exporter /usr/local/bin
 
   - name: Create user 
+    shell: useradd --no-create-home --shell /bin/false node_exporter
 
   - name: Assign exec file to user
+    shell: chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
   - name: Copy service config
+    shell: cp ./configs/node-exporter.service /etc/systemd/system/node_exporter.service
 
   - name: Daemon-reload
+    shell: systemctl daemon-reload
 
   - name: Enable and start service
+    service:
+      name: node_exporter
+      enabled: yes
+      state: started
 
   - name: Clear temporary dir
+    file:
+      state: absent
+      path: /tmp/node-exporter
