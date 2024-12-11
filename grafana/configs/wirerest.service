@@ -1,0 +1,15 @@
+[Unit]
+Description=Wirerest API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=wireguard_rest
+Group=wireguard_rest
+Type=simple
+ExecStart=/usr/bin/java -jar /usr/local/bin/wirerest.jar --wg.interface.name=wg0 --security.token= --server.port=8081
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
