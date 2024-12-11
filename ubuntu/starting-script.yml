@@ -25,6 +25,7 @@
       - ca-certificates
       - net-tools
       - curl
+      - git
 
   - name: Find out playbook's path
     shell: pwd
