@@ -4,17 +4,29 @@
   become_method: sudo
   tasks:
   
-#  - name: Download executable 
-#    get_url:
-#      url: https://github.com/FokiDoki/WireRest/releases/download/0.7-BETA/wirerest-0.7.jar
-#      dest: /usr/local/bin/wirerest.jar
-#      mode: '0411'
+  - name: Download executable 
+    get_url:
+      url: https://github.com/FokiDoki/WireRest/releases/download/0.7-BETA/wirerest-0.7.jar
+      dest: /usr/local/bin/wirerest.jar
+      mode: '0411'
 
-#  - name: Create user 
-#    shell: useradd --no-create-home --shell /bin/false wireguard_rest
+  - name: Create user 
+    shell: useradd --no-create-home --shell /bin/false wireguard_rest
 
-#  - name: Assign exec file to user
-#    shell: chown wireguard_rest:wireguard_rest /usr/local/bin/wirerest.jar
+  - name: Assign exec file to user
+    shell: chown wireguard_rest:wireguard_rest /usr/local/bin/wirerest.jar
+
+  - pause: 
+      prompt: "Please enter the port which should use Wirerest API (Press Enter for default 8081): "
+      echo: true
+    register: port
+
+  - name: Replace API port to service file
+    replace:
+      path: ./configs/wirerest.service
+      regexp: '--server.port=8081'
+      replace: '--server.port={{ port.user_input }}'
+    when: port.user_input | length > 0 and port.user_input | length < 65536
 
   - name: Generate token for API access
     shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64
@@ -25,9 +37,8 @@
       msg:
       - "Your API token for access is: {{ APItoken.stdout }}"
 
-#  - name: Copy service file
-#    shell: cp ./configs/wirerest.service /etc/systemd/system/wirerest.service
-
+  - name: Copy service file
+    shell: cp ./configs/wirerest.service /etc/systemd/system/wirerest.service
 
   - name: Replace API token to service file
     replace:
@@ -35,14 +46,16 @@
       regexp: '--security.token='
       replace: '--security.token={{ APItoken.stdout }}'
 
+  - name: Daemon-reload
+    shell: systemctl daemon-reload
 
-#  - name: Daemon-reload
-#    shell: systemctl daemon-reload
+  - name: Enable and start service
+    service:
+      name: wirerest
+      enabled: yes
+      state: started
 
-
-#  - name: Enable and start service
-#    service:
-#      name: wirerest
-#      enabled: yes
-#      state: started
-
+  - name: Message to user
+    debug:
+      msg:
+      - "Now you can enter the http://127.0.0.1:{{ port.user_input }}"
