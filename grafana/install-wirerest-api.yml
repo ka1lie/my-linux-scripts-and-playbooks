@@ -26,7 +26,7 @@
       path: ./configs/wirerest.service
       regexp: '--server.port=8081'
       replace: '--server.port={{ port.user_input }}'
-    when: port.user_input | length > 0 and port.user_input | length < 65536
+    when: port.user_input | length > 0 and port.user_input <= 65535 and port.user_input > 0
 
   - name: Generate token for API access
     shell: head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64
