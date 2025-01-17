@@ -1,0 +1,83 @@
+- hosts: localhost
+  connection: local
+  become: yes 
+  become_method: sudo
+  tasks:
+
+  - name: Update currently installed packets
+    dnf:
+      name: "*"
+      state: latest
+      update_only: yes
+
+  - name: Install remi repo
+    dnf:
+      name: 'http://rpms.remirepo.net/enterprise/remi-release-9.rpm'
+      state: present
+
+  - name: Install epel repo and dnf-utils
+    dnf:
+      name:
+        - epel-release
+        - dnf-utils
+      state: latest
+
+  - name: Install MySQL, Apache, PHP
+    dnf:
+      name: 
+        - httpd
+        - mysql-server
+        - php
+        - php-cli
+        - php-fpm 
+        - php-mysqlnd 
+        - php-zip 
+        - php-devel 
+        - php-gd 
+        - php-mcrypt 
+        - php-mbstring 
+        - php-curl 
+        - php-xml 
+        - php-pear 
+        - php-bcmath 
+        - php-json
+      state: latest
+
+  - name: Start & Enable Apache Server to start on boot
+    service: 
+      name: httpd 
+      state: started 
+      enabled: yes
+
+  - name: Start & Enable MySQL Server to start on boot
+    service: 
+      name: mysqld
+      state: started 
+      enabled: yes
+
+  - name: Start & Enable php-fpm to start on boot
+    service: 
+      name: php-fpm
+      state: started 
+      enabled: yes
+
+  - name: Allow 80/tcp
+    firewalld:
+      zone: public
+      service: http
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Allow 443/tcp
+    firewalld:
+      zone: public
+      service: https
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Print message to user
+    debug:
+      msg:
+      - "You should secure your mysql by executing mysql_secure_installation"
