@@ -26,13 +26,8 @@
     debug:
       msg: Your port is "{{ ssh_port }}"
 
-  - name: Install epel-release
-    dnf:
-      name: epel-release
-      state: latest
-
   - name: Install fail2ban
-    dnf:
+    apt:
       name: fail2ban
       state: latest
 
@@ -48,14 +43,23 @@
       regexp: '#Port 22'
       replace: 'Port {{ ssh_port }}'
 
-  - name: Update ssh port in ssh default rule for firewall-cmd
+  - name: Update ssh port in ssh default rule for ufw
     replace:
-      path: /usr/lib/firewalld/services/ssh.xml
-      regexp: 'port="22"'
-      replace: 'port="{{ ssh_port }}"'
+      path: /etc/services
+      regexp: '22\/tcp'
+      replace: '{{ ssh_port }}/tcp'
 
-  - name: Set to SElinux correct ssh port 
-    shell: semanage port -a -t ssh_port_t -p tcp {{ ssh_port }}
+  - name: Add ssh port for ufw
+    community.general.ufw:
+      rule: allow
+      port: "{{ ssh_port }}"
+      proto: tcp
+
+  - name: Deny old ssh port for ufw
+    community.general.ufw:
+      rule: deny
+      port: 22
+      proto: tcp
 
   - name: Enable and start fail2ban
     service: 
@@ -63,9 +67,9 @@
       state: started 
       enabled: yes
 
-  - name: Restart firewalld
+  - name: Restart ufw
     service:
-      name: firewalld
+      name: ufw
       state: restarted
 
   - name: Restart ssh
