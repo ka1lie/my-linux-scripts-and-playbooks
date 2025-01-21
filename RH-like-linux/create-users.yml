@@ -1,0 +1,66 @@
+- hosts: localhost
+  connection: local
+  become: yes
+  become_method: sudo
+  gather_facts: no
+  vars_prompt:
+
+    - name: username
+      prompt: "Please enter the username: "
+      private: false
+
+    - name: ssh_key
+      prompt: "Please enter the ssh-key if you have (press Enter for skipping): "
+      private: false
+
+    - name: sudoers
+      prompt: "Should be user added in sudoers? (Y/n): "
+      private: false
+
+    - name: sudoers_passwordless
+      prompt: "Should be user exec sudo passwordless? (Y/n): "
+      private: false
+  
+  tasks:
+
+
+  - block: #Execute when username is defined
+
+    - name: Create user 
+      shell: useradd -m -d /home/{{ username }} --shell /bin/bash {{ username }}
+
+    - name: Create .ssh directory
+      shell: mkdir /home/{{ username }}/.ssh
+
+    - name: Chown .ssh to user
+      shell: chown {{ username }}:{{ username }} /home/{{ username }}/.ssh
+
+    - name: Chmod 700 to .ssh
+      shell: chmod 700 /home/{{ username }}/.ssh
+
+      
+    - block: #Ececute when ssh-key is provided
+
+      - name: Add ssh-key
+        shell: echo {{ ssh_key }} > /home/{{ username }}/.ssh/authorized_keys
+
+      - name: Chmod 600 to authorized_keys
+        shell: chmod 600 /home/{{ username }}/.ssh/authorized_keys
+
+      - name: Chown to authorized_keys
+        shell: chown {{ username }}:{{ username }} /home/{{ username }}/.ssh/authorized_keys
+
+      when: ssh_key | length > 0
+
+    - block: #Ececute when sudo is needed
+
+      - name: Add sudoers group
+        shell: usermod -aG wheel {{ username }}
+
+      - name: Add passwordless sudo
+        shell: echo "{{ username }} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/{{ username }}-user
+        when: sudoers_passwordless == "y" or sudoers_passwordless | length == 0
+
+      when: sudoers == "y" or sudoers | length == 0
+
+    when: username | length > 0
