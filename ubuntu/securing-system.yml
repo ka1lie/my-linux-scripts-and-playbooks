@@ -1,0 +1,78 @@
+- hosts: localhost
+  connection: local
+  become: yes
+  become_method: sudo
+  gather_facts: no
+  tasks:
+
+  - name: Initialize ports list
+    set_fact:
+      ports: []
+
+  - name: Generate unique random ports
+    set_fact:
+      ports: "{{ ports + [10240 + (48927 | random)] }}"
+    when: "10240 + (48927 | random) not in ports"
+    # You can do it for generate multiple ports by increace range
+    loop: "{{ range(1) }}"
+
+  - name: Generate random port to ssh
+    set_fact:
+      # Add additional port for other services by increasing array
+      ssh_port: "{{ ports[0] }}"
+      cacheable: yes
+
+  - name: Show ports for user
+    debug:
+      msg: Your port is "{{ ssh_port }}"
+
+  - name: Install fail2ban
+    apt:
+      name: fail2ban
+      state: latest
+
+  - name: Copy predefined jail.local
+    shell: cp ./fail2ban/jail.local /etc/fail2ban/jail.local
+
+  - name: Copy predefined sshd_config
+    shell: cp -f ./ssh/sshd_config /etc/ssh/sshd_config
+
+  - name: Replace to our random generated port
+    replace:
+      path: /etc/ssh/sshd_config
+      regexp: '#Port 22'
+      replace: 'Port {{ ssh_port }}'
+
+  - name: Update ssh port in ssh default rule for ufw
+    replace:
+      path: /etc/services
+      regexp: '22\/tcp'
+      replace: '{{ ssh_port }}/tcp'
+
+  - name: Add ssh port for ufw
+    community.general.ufw:
+      rule: allow
+      port: "{{ ssh_port }}"
+      proto: tcp
+
+  - name: Deny old ssh port for ufw
+    community.general.ufw:
+      rule: deny
+      port: 22
+      proto: tcp
+
+  - name: Enable and start fail2ban
+    service: 
+      name: fail2ban
+      state: started 
+      enabled: yes
+
+  - name: Restart ufw
+    service:
+      name: ufw
+      state: restarted
+
+  - name: Restart ssh
+    service:
+      name: sshd
+      state: restarted
