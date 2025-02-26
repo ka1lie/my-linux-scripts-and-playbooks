@@ -35,8 +35,8 @@
     - name: Chown .ssh to user
       shell: chown {{ username }}:{{ username }} /home/{{ username }}/.ssh
 
-    - name: Chmod 700 to .ssh
-      shell: chmod 700 /home/{{ username }}/.ssh
+    - name: Chmod 755 to .ssh
+      shell: chmod 755 /home/{{ username }}/.ssh
 
       
     - block: #Ececute when ssh-key is provided
