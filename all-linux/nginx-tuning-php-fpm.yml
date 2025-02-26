@@ -1,0 +1,39 @@
+- hosts: localhost
+  connection: local
+  become: yes 
+  become_method: sudo
+  tasks:
+
+    - name: Fix user and group in www.conf
+      replace:
+        path: /etc/php-fpm.d/www.conf
+        regexp: '= apache'
+        replace: '= nginx'
+
+    - name: Give access for php sessions
+      shell: chown -R nginx:nginx /var/lib/php
+    
+    - name: Give access for default nginx web directory
+      shell: chown -R nginx:nginx /usr/share/nginx
+
+    - name: Restart nginx
+      service:
+        name: nginx
+        state: restarted
+
+    - name: Restart php-fpm
+      service:
+        name: php-fpm
+        state: restarted
+
+    - name: Create index.php for check php-fpm works
+      file:
+        path: /usr/share/nginx/html/index.php
+        content: |
+          <?php
+
+          phpinfo();
+          ?>
+        mode: "0644"
+        owner: nginx
+        group: nginx
