@@ -61,6 +61,9 @@
       port: 22
       proto: tcp
 
+  - name: Remove Ubuntu defauld cloud-init ssh config
+    shell: rm -rf /etc/ssh/sshd_config.d/50-cloud-init.conf
+
   - name: Enable and start fail2ban
     service: 
       name: fail2ban
