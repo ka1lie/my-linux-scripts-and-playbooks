@@ -1,0 +1,84 @@
+- hosts: localhost
+  connection: local
+  become: yes 
+  become_method: sudo
+  tasks:
+
+  - name: Update currently installed packets
+    dnf:
+      name: "*"
+      state: latest
+      update_only: yes
+
+  - name: Install remi repo
+    dnf:
+      name: 'http://rpms.remirepo.net/enterprise/remi-release-9.rpm'
+      state: present
+      disable_gpg_check: yes
+
+  - name: Install epel repo and dnf-utils
+    dnf:
+      name:
+        - epel-release
+        - dnf-utils
+      state: latest
+
+  - name: Install MySQL, Apache, PHP and modules
+    dnf:
+      name: 
+        - nginx
+        - mysql-server
+        - php
+        - php-cli
+        - php-fpm 
+        - php-mysqlnd 
+        - php-zip 
+        - php-devel 
+        - php-gd 
+        - php-mcrypt 
+        - php-mbstring 
+        - php-curl 
+        - php-xml 
+        - php-pear 
+        - php-bcmath 
+        - php-json
+      state: latest
+
+  - name: Start & Enable Nginx Server to start on boot
+    service: 
+      name: nginx
+      state: started 
+      enabled: yes
+
+  - name: Start & Enable MySQL Server to start on boot
+    service: 
+      name: mysqld
+      state: started 
+      enabled: yes
+
+  - name: Start & Enable php-fpm to start on boot
+    service: 
+      name: php-fpm
+      state: started 
+      enabled: yes
+
+  - name: Allow http
+    shell: firewall-cmd --permanent --add-service=http
+
+  - name: Allow https
+    shell: firewall-cmd --permanent --add-service=https
+
+  - name: Reload firewall
+    shell: firewall-cmd --reload
+
+  - name: Create SELinux context for default web directory
+    shell: semanage fcontext -a -t httpd_sys_rw_content_t '/usr/share/nginx(/.*)?'
+
+  - name: Restore context
+    shell: restorecon -Rv '/usr/share/nginx(/.*)?'
+
+  - name: Print message to user
+    debug:
+      msg:
+      - "You should secure your mysql installation by executing mysql_secure_installation"
+      - "If you want to use php-fpm as engine for your website, you should run php-fpm tuning playbook"
