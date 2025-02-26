@@ -46,7 +46,7 @@
 
   - name: Start & Enable Apache Server to start on boot
     service: 
-      name: httpd 
+      name: httpd
       state: started 
       enabled: yes
 
@@ -71,7 +71,13 @@
   - name: Reload firewall
     shell: firewall-cmd --reload
 
+  - name: Create SELinux context for default web directory
+    shell: semanage fcontext -a -t httpd_sys_rw_content_t '/var/www(/.*)?'
+
+  - name: Restore context
+    shell: restorecon -Rv '/var/www(/.*)?'
+
   - name: Print message to user
     debug:
       msg:
-      - "You should secure your mysql by executing mysql_secure_installation"
+      - "You should secure your mysql installation by executing mysql_secure_installation"
