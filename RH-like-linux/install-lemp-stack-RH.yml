@@ -23,12 +23,14 @@
         - dnf-utils
       state: latest
 
-  - name: Install MySQL, Apache, PHP and modules
+  - name: Specify Remi for php module (change if you need other version of php)
+    shell: dnf module enable -y php:remi-8.4
+
+  - name: Install MySQL, nginx, PHP modules
     dnf:
       name: 
         - nginx
         - mysql-server
-        - php
         - php-cli
         - php-fpm 
         - php-mysqlnd 
