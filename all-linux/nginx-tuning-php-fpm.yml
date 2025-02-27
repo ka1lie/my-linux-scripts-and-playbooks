@@ -4,11 +4,17 @@
   become_method: sudo
   tasks:
 
-    - name: Fix user and group in www.conf
+    - name: Fix user in www.conf
       replace:
         path: /etc/php-fpm.d/www.conf
-        regexp: '= apache'
-        replace: '= nginx'
+        regexp: 'user = apache'
+        replace: 'user = nginx'
+
+    - name: Fix group in www.conf
+      replace:
+        path: /etc/php-fpm.d/www.conf
+        regexp: 'group = apache'
+        replace: 'group = nginx'
 
     - name: Give access for php sessions
       shell: chown -R nginx:nginx /var/lib/php
