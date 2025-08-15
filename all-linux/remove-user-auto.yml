@@ -1,0 +1,13 @@
+---
+- name: Remove a Linux user and their home directory
+  hosts: all
+  become: true
+  vars:
+    username: test  # Change this to the user you want to remove
+
+  tasks:
+    - name: Ensure the user is absent and remove home directory
+      ansible.builtin.user:
+        name: "{{ username }}"
+        state: absent
+        remove: yes
