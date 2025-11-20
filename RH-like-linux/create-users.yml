@@ -30,7 +30,12 @@
       shell: useradd -m -d /home/{{ username }} --shell /bin/bash {{ username }}
 
     - name: Create .ssh directory
-      shell: mkdir /home/{{ username }}/.ssh
+      ansible.builtin.file:
+        path: "/home/{{ username }}/.ssh"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0700'
 
     - name: Chown .ssh to user
       shell: chown {{ username }}:{{ username }} /home/{{ username }}/.ssh
@@ -41,11 +46,13 @@
       
     - block: #Ececute when ssh-key is provided
 
-      - name: Add ssh-key
-        shell: echo {{ ssh_key }} > /home/{{ username }}/.ssh/authorized_keys
-
-      - name: Chmod 600 to authorized_keys
-        shell: chmod 600 /home/{{ username }}/.ssh/authorized_keys
+      - name: Add SSH public key
+        ansible.builtin.copy:
+          dest: "/home/{{ username }}/.ssh/authorized_keys"
+          content: "{{ ssh_key }}"
+          owner: "{{ username }}"
+          group: "{{ username }}"
+          mode: '0600'
 
       - name: Chown to authorized_keys
         shell: chown {{ username }}:{{ username }} /home/{{ username }}/.ssh/authorized_keys
